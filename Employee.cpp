@@ -5,14 +5,16 @@
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include "dob.h"
 
 using namespace std;
 
 
 class Employee {
 private:
-	int emp_id, sal,dob, group_id;
-	string name, address;
+	int emp_id, group_id;
+	long sal;
+	string name,dob,country,state,city;
 
 public:
 	void menu();
@@ -37,7 +39,6 @@ void Employee::menu() {
 	cout << "\n 7. Search Group";
 	cout << "\n 8. Show All Group";
 	cout << "\n 9. Exit";
-
 	cout << "\n\nYour Choice: ";
 
 	cin >> input;
@@ -82,20 +83,40 @@ void Employee::insert() {
 	cout << "\n\n\n Employee ID : ";
 	cin >> emp_id;
 	cin.ignore();
-	cout << "\n\n\t\tEmployee Name : ";
+	cout << "\n\n\t\tName : ";
 	getline(cin, name);
-	cout << "\n\n Employe DOB: ";
-	cin >> dob;
-	cin.ignore();
-	cout << "\n\n\t\tEmployee Salary/year : ";
+	std::string temp;
+	int month, day, year;
+
+	while (true) {
+		std::cout << "\n\n Birthdate (mm-dd-yyyy): ";
+		getline(std::cin, temp);
+
+		if (sscanf_s(temp.c_str(), "%d-%d-%d", &month, &day, &year) != 3) {
+			std::cout << "Invalid date format. Please use mm-dd-yyyy format." << std::endl;
+			continue;
+		}
+
+		if (!isValidDate(month, day, year)) {
+			continue; 
+		}
+
+		break;
+	}
+	cout << "\n\n\t\tSalary/year : ";
 	cin >> sal;
-	cout << "\n\n Employee Address : ";
+	cout << "\n\n Country: ";
 	cin.ignore();
-	getline(cin, address);
-	cout << "\n\n\t\tEmployee Group ID : ";
+	getline(cin, country);
+	cout << " State: ";
+	getline(cin, state);
+	cout << " City: ";
+	getline(cin, city);
+	cout << "\n\n\t\tGroup ID : ";
 	cin >> group_id;
 	file.open("Employee.txt",ios::out|ios::app);
-	file << emp_id << " " << name << " " << dob << " " << sal << " " << address << " " << group_id << "\n";	file.close();
+	string dob = to_string(month) + "/" + to_string(day) + "/" + to_string(year);
+	file << emp_id << "\t" << name << "\t" << dob << "\t" << sal << "\t" << country<< "\t" << state << "\t" << city << "\t" << group_id << "\n";	file.close();
 	file1.open("group.txt", ios::out | ios::app);
 	file1 << " " << group_id << " " << emp_id << " " << sal << "\n";
 	file1.close();
@@ -117,15 +138,15 @@ void Employee::display() {
 	 file.seekg(0, ios::beg);
 	//while file is not end of the file
 	 while (!file.eof()) {
-		 file >> emp_id >> name >> dob >> sal >> address >> group_id;
+		 file >> emp_id >> name >> dob >> sal >> country >> state >> city >> group_id;
 
 		 // Print the data only if not at the end of the file
 		 if (!file.eof()) {
 			 cout << "\n\n Employee |" << empNumber << "| ID : " << emp_id;
-			 cout << "\n\n\t\tEmployee Name : " << name;
-			 cout << "\n\n Employe DOB: " << dob;
-			 cout << "\n\n\t\tEmployee Salary/year : $" << sal;
-			 cout << "\n\n Employee Address: " << address;
+			 cout << "\n\n\t\tName : " << name;
+			 cout << "\n\n DOB: " << dob;
+			 cout << "\n\n\t\tSalary/year : $" << sal;
+			 cout << "\n\n Country: "<< country <<"\tState: " << state << "\tCity: " << city;
 			 cout << "\n\n\t\tGroup ID : " << group_id;
 			 cout << "\n----------------------------------------\n";
 			 empNumber++;
@@ -151,17 +172,17 @@ void Employee::search() {
 	cin >> emp_idd;
 	file.seekg(0, ios::beg);
 	while (!file.eof()) {
-		file >> emp_id >> name >> dob >> sal >> address >> group_id;
+		file >> emp_id >> name >> dob >> sal >> country >> state >> city >> group_id;
 
 		// Print the data only if not at the end of the file
 		if (emp_idd == emp_id) {
 			system("cls");
 			cout << "\n\n\t\t\t\tSearch Record";
 			cout << "\n\n Employee ID : " << emp_id;
-			cout << "\n\n\t\tEmployee Name : " << name;
-			cout << "\n\n Employe DOB: " << dob;
-			cout << "\n\n\t\tEmployee Salary/year : $" << sal;
-			cout << "\n\n Employee Address: " << address;
+			cout << "\n\n\t\tName : " << name;
+			cout << "\n\n DOB: " << dob;
+			cout << "\n\n\t\tSalary/year : $" << sal;
+			cout << "\n\n Country: " << country << "\tState: " << state << "\tCity: " << city;
 			cout << "\n\n\t\tGroup ID : " << group_id;
 			found++;
 		}
