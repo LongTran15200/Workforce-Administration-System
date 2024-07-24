@@ -22,6 +22,10 @@ public:
 	void display();
 	void search();
 	void modify();
+	void deletion();
+	void group();
+	void searGroup();
+	void showAlGroup();
 };
 
 void Employee::menu() {
@@ -54,14 +58,19 @@ void Employee::menu() {
 		search();
 		break;
 	case 4:
+		modify();
 		break;
 	case 5:
+		deletion();
 		break;
 	case 6:
+		group();
 		break;
 	case 7:
+		searGroup();
 		break;
 	case 8:
+		showAlGroup();
 		break;
 	case 9:
 		exit(0);
@@ -83,7 +92,7 @@ void Employee::insert() {
 	cout << "\n\n\n Employee ID : ";
 	cin >> emp_id;
 	cin.ignore();
-	cout << "\n\n\t\tName : ";
+	cout << "\n\n\t\tName (Last,First) : ";
 	getline(cin, name);
 	std::string temp;
 	int month, day, year;
@@ -143,7 +152,7 @@ void Employee::display() {
 		 // Print the data only if not at the end of the file
 		 if (!file.eof()) {
 			 cout << "\n\n Employee |" << empNumber << "| ID : " << emp_id;
-			 cout << "\n\n\t\tName : " << name;
+			 cout << "\n\n\t\tName (Last,First) : " << name;
 			 cout << "\n\n DOB: " << dob;
 			 cout << "\n\n\t\tSalary/year : $" << sal;
 			 cout << "\n\n Country: "<< country <<"\tState: " << state << "\tCity: " << city;
@@ -179,8 +188,8 @@ void Employee::search() {
 			system("cls");
 			cout << "\n\n\t\t\t\tSearch Record";
 			cout << "\n\n Employee ID : " << emp_id;
-			cout << "\n\n\t\tName : " << name;
-			cout << "\n\n DOB: " << dob;
+			cout << "\n\n\t\tName (Last,First) : " << name;
+			cout << "\n\n Birthdate (mm-dd-yyyy): " << dob;
 			cout << "\n\n\t\tSalary/year : $" << sal;
 			cout << "\n\n Country: " << country << "\tState: " << state << "\tCity: " << city;
 			cout << "\n\n\t\tGroup ID : " << group_id;
@@ -195,17 +204,167 @@ void Employee::search() {
 
 void Employee::modify() {
 	system("cls");
-	int sal, test_id, found = 0;
-	string name1, address1;
-	fstream file("Employee.txt"), file1("group.txt");
-	cout << "\n\n\t\t\t\tModify Record";
-	file.seekg(0, ios::end);
-	file1.seekg(0, ios::end);
+	int test_id, found = 0;
+	string name1, country1, state1, city1, dob1;
+	long sala;
 
-	if (file.tellg() == 0 || file1.tellg() == 0) {
-		cout << "\n\n The file is empty.";
-		file.close();
-		file1.close();
+	cout << "\n\n\t\t\t\tModify Record";
+	cout << "\n\n Employee ID For Modify : ";
+	cin >> test_id;
+
+	fstream file("Employee.txt", ios::in);
+	fstream tempFile("tempEmployee.txt", ios::out | ios::app);
+
+	if (!file || !tempFile) {
+		cerr << "Error opening files." << endl;
 		return;
 	}
+
+	while (file >> emp_id >> name >> dob >> sal >> country >> state >> city >> group_id) {
+		if (test_id == emp_id) {
+			found++;
+			cout << "\n\n\t\tName (Last,First) : ";
+			cin.ignore();
+			getline(cin, name1);
+			cout << "\n\n Birthdate (mm-dd-yyyy): ";
+			getline(cin, dob1);
+			cout << "\n\n\t\tSalary/year: $";
+			cin >> sala;
+			cout << "\n\n Country: ";
+			cin.ignore();
+			getline(cin, country1);
+			cout << " State: ";
+			getline(cin, state1);
+			cout << " City: ";
+			getline(cin, city1);
+
+			// Update the record in the temporary file
+			tempFile << emp_id << "\t" << name1 << "\t" << dob1 << "\t" << sala << "\t" << country1 << "\t" << state1 << "\t" << city1 << "\t" << group_id << "\n";
+		}
+		else {
+			// Copy the existing record to the temporary file
+			tempFile << emp_id << "\t" << name << "\t" << dob << "\t" << sal << "\t" << country << "\t" << state << "\t" << city << "\t" << group_id << "\n";
+		}
+	}
+
+	file.close();
+	tempFile.close();
+
+	// Delete the original file and rename the temporary file
+	if (remove("Employee.txt") != 0) {
+		cerr << "Error deleting original file." << endl;
+		return;
+	}
+	if (rename("tempEmployee.txt", "Employee.txt") != 0) {
+		cerr << "Error renaming file." << endl;
+		return;
+	}
+
+	if (found == 0) {
+		cout << "\n\n Employee ID Not Found...";
+	}
+	else {
+		cout << "\n\n\t\t\tRecord Modify Successfully...";
+	}
+}
+
+void Employee::deletion() {
+	system("cls");
+	int test_id, found = 0;
+	fstream file, tempFile;
+	cout << "\n\n\t\t\t\tDelete Record";
+	file.open("Employee.txt", ios::in);
+	if (!file) {
+		cout << "\n\n  File Opening Error...";
+		menu();
+	}
+	cout << "\n\n  Employee ID For Delete : ";
+	cin >> test_id;
+	tempFile.open("tempEmployee.txt", ios::out); // Temporary file to store updated records
+
+	while (file >> emp_id >> name >> dob >> sal >> country >> state >> city >> group_id) {
+		if (test_id == emp_id) {
+			found++;
+			cout << "\n\n Record Deleted Successfully...";
+			continue; // Skip writing this record to the temporary file
+		}
+		// Write all other records to the temporary file
+		tempFile << emp_id << "\t" << name << "\t" << dob << "\t" << sal << "\t" << country << "\t" << state << "\t" << city << "\t" << group_id << "\n";
+	}
+
+	file.close();
+	tempFile.close();
+
+	// Delete the original file and rename the temporary file
+	if (remove("Employee.txt") != 0) {
+		cerr << "Error deleting original file." << endl;
+		return;
+	}
+	if (rename("tempEmployee.txt", "Employee.txt") != 0) {
+		cerr << "Error renaming file." << endl;
+		return;
+	}
+
+	if (found == 0) {
+		cout << "\n\n Employee ID Not Found...";
+	}
+}
+void Employee::group() {
+	system("cls");
+	fstream file, tempFile;
+	cout << "\n\n\t\t\t\tGroup Record";
+	file.open("group.txt", ios::in);
+	if (!file) {
+		cout << "\n\n  File Opening Error...";
+		menu();
+	}
+	file >> group_id >> emp_id >> sal;
+	while (!file.eof()) {
+		cout << "\n\n\n\n Group ID : " << group_id;
+		cout << "\n\n\t\t Employee ID : " << emp_id;
+		cout << "\n\n Employee Salary : " << sal;
+		file >> group_id >> emp_id >> sal;
+	}
+	file.close();
+}
+
+void Employee::searGroup() {
+	system("cls");
+	int test_id, found = 0, emp_count = 0, sal_count = 0;
+	fstream file;
+	cout << "\n\n\t\t\t\tSearch Group Record";
+	file.open("group.txt", ios::in);
+	if (!file) {
+		cout << "\n\n  File Opening Error...";
+		menu();
+	}
+	cout << "\n\n Group ID For Search : ";
+	cin >> test_id;
+	system("cls");
+	cout << "\n\n\t\t\t\tSearch Group Record";
+	file >> group_id >> emp_id >> sal;
+	while (!file.eof()) {
+		if (test_id == group_id) {
+			cout << "\n\n\n Group ID : " << group_id;
+			cout << "\n\n\t\tEmployee ID : " << emp_id;
+			cout << "\n\n Employee Salary : " << sal;
+			found++;
+			emp_count++;
+			sal_count = sal_count + sal;
+		}
+		file >> group_id >> emp_id >> sal;
+	}
+	file.close();
+	if (found != 0) {
+		cout << "\n\n\n Group ID :" << test_id;
+		cout << "\n\n\t\tTotal Employee : " << emp_count;
+		cout << "\n\n Total Salary :" << sal_count;
+	}
+	else {
+		cout << "\n\n Group ID Can't Found...";
+	}
+}
+
+void Employee::showAlGroup() {
+
 }
