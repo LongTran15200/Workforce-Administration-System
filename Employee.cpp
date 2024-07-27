@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include "dob.h"
+#include <map>
 
 using namespace std;
 
@@ -27,7 +28,6 @@ public:
 	void searGroup();
 	void showAlGroup();
 };
-
 void Employee::menu() {
 	p:
 	system("cls");
@@ -265,23 +265,27 @@ void Employee::modify() {
 	}
 	else {
 		cout << "\n\n\t\t\tRecord Modify Successfully...";
+
 	}
+	cout << "\nPress any button to go back to menu...";
 }
 
 void Employee::deletion() {
 	system("cls");
 	int test_id, found = 0;
-	fstream file, tempFile;
+	fstream file, tempFile, groupFile, tempGroupFile;
+
 	cout << "\n\n\t\t\t\tDelete Record";
 	file.open("Employee.txt", ios::in);
 	if (!file) {
 		cout << "\n\n  File Opening Error...";
 		menu();
 	}
+
 	cout << "\n\n  Employee ID For Delete : ";
 	cin >> test_id;
-	tempFile.open("tempEmployee.txt", ios::out); // Temporary file to store updated records
 
+	tempFile.open("tempEmployee.txt", ios::out); // Temporary file to store updated records
 	while (file >> emp_id >> name >> dob >> sal >> country >> state >> city >> group_id) {
 		if (test_id == emp_id) {
 			found++;
@@ -291,7 +295,6 @@ void Employee::deletion() {
 		// Write all other records to the temporary file
 		tempFile << emp_id << "\t" << name << "\t" << dob << "\t" << sal << "\t" << country << "\t" << state << "\t" << city << "\t" << group_id << "\n";
 	}
-
 	file.close();
 	tempFile.close();
 
@@ -305,9 +308,43 @@ void Employee::deletion() {
 		return;
 	}
 
+	// Update group file
+	if (found > 0) {
+		// Open group file and temporary file for group records
+		groupFile.open("group.txt", ios::in);
+		if (!groupFile) {
+			cout << "\n\n  File Opening Error...";
+			menu();
+		}
+
+		tempGroupFile.open("tempGroup.txt", ios::out); // Temporary file to store updated group records
+		int emp_id, group_id;
+		long sal;
+		while (groupFile >> group_id >> emp_id >> sal) {
+			if (emp_id != test_id) {
+				// Write all other records to the temporary group file
+				tempGroupFile << group_id << "\t" << emp_id << "\t" << sal << "\n";
+			}
+		}
+
+		groupFile.close();
+		tempGroupFile.close();
+
+		// Delete the original group file and rename the temporary file
+		if (remove("group.txt") != 0) {
+			cerr << "Error deleting original group file." << endl;
+			return;
+		}
+		if (rename("tempGroup.txt", "group.txt") != 0) {
+			cerr << "Error renaming group file." << endl;
+			return;
+		}
+	}
+
 	if (found == 0) {
 		cout << "\n\n Employee ID Not Found...";
 	}
+	cout << "Press any button to go back to menu...";
 }
 void Employee::group() {
 	system("cls");
@@ -325,6 +362,7 @@ void Employee::group() {
 		cout << "\n\n Employee Salary : " << sal;
 		file >> group_id >> emp_id >> sal;
 	}
+	cout << "Press any button to go back to menu...";
 	file.close();
 }
 
@@ -356,15 +394,51 @@ void Employee::searGroup() {
 	}
 	file.close();
 	if (found != 0) {
-		cout << "\n\n\n Group ID :" << test_id;
 		cout << "\n\n\t\tTotal Employee : " << emp_count;
 		cout << "\n\n Total Salary :" << sal_count;
 	}
 	else {
 		cout << "\n\n Group ID Can't Found...";
 	}
+	cout << "\nPress any button to go back to menu...";
 }
 
 void Employee::showAlGroup() {
+	system("cls");
+	ifstream file("group.txt");
+	if (!file) {
+		cout << "\n\n  File Opening Error...";
+		menu();
+	}
 
+	map<int, long> groupSalaries;
+	int group_id, emp_id, sal;
+	int emp_count = 0;
+	long sal_count = 0;
+
+	while (file >> group_id >> emp_id >> sal) {
+		emp_count++;
+		sal_count += sal;
+		groupSalaries[group_id] += sal; // Accumulate salary for each group ID
+	}
+
+	file.close();
+
+	if (emp_count > 0) {
+		cout << "\n\n\t\t\t\tShow All Group";
+		cout << "\n\n Group ID\t\tTotal Salary";
+
+		// Iterate through the map and display each group ID and total salary
+		for (auto it = groupSalaries.begin(); it != groupSalaries.end(); ++it) {
+			cout << "\n " << it->first << "\t\t$" << it->second;
+		}
+
+		cout << "\n\n Total Employees in All Groups : " << emp_count;
+		cout << "\n Total Salary of All Groups : $" << sal_count;
+	}
+	else {
+		cout << "\n\n No Groups found.";
+	}
+	cout << "\nPress any button to go back to menu...";
+	char ignored = _getch();
 }
